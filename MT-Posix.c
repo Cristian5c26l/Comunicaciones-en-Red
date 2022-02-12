@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <pthread.h>
 
-
+// Flujo de instrucciones asociado al hilo creado (hilo en cuestión)
 void *routine( void* anything ){
     printf("Hola mundo! Soy el hilo %ld\n",pthread_self());
 }
@@ -22,12 +22,15 @@ int main(int argc, char const *argv[]){
     // Reservación de memoria dinámica (en el heap)
     pthread_t* thArray = ( pthread_t* )malloc( nThreads*sizeof( pthread_t ) );
 
+    /* Inicio de la región de concurrencia/paralelismo */
+    // Creación y ejecución de los hilos
     for (int i = 0; i < nThreads; i++){
         if( pthread_create( &thArray[i], NULL, routine, NULL ) < 0 ){
             printf( "El sistema operativo no pudo crear un hilo POSIX de usuario\n" );
             exit( 1 );
         }
     }
+    /* Fin de la región de concurrencia/paralelismo */
 
     // Esperar la terminación de los hilos
     for (int i = 0; i < nThreads; i++){
