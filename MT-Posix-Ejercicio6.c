@@ -10,79 +10,45 @@
 char const *fileName = "TestFile.txt";
 
 typedef struct{// la estructura contiene
-    char fn[20];// nombre del archivo donde se va a buscar la palabra
-    char strFind[100];// palabra a buscar
-    int nTimesFound;// veces que fue encontrada la palabra
+    char testFile[20];// nombre del archivo donde se va a buscar la palabra
+    char testWord[100];// palabra a buscar
+    int repetitionsNumber;// veces que fue encontrada la palabra
+    long pThId;
 }Struct;
-
-int isSignoDeTerminacion(char);
 
 void *routine(void* aStruct){//Flujo de instrucciones de un hilo. Funcion se convierte en un hilo
     Struct *thStruct = (Struct*) aStruct;
-    FILE* fp = fopen(thStruct->fn,"r");
+    FILE* fp = fopen(thStruct->testFile,"r");// leer el nombre del archivo que se quiere analizar con este hilo
     if(fp != NULL){
 
-        // Algoritmo para encontrar el numero de veces que aparece la palabra thStruct->strFind = todos en el archivo .txt especificado
+        // Algoritmo para encontrar el numero de veces que aparece la palabra thStruct->strFind en el archivo .txt especificado
+
         char thWordF[100];
-        while(!feof(fp)){
+        char *tok; //token donde se guarda una palabra o cadena de caracteres con significado coheerente. En este caso, en tok se guardaran caracteres alfanumericos (para formar palabras o cantidades numericas) hasta que encuentre un espacio, coma, punto o algun signo de puntuacion extra
+        while(!feof(fp)){ // Recorrer todo el archivo
+            // Extraer palabra por palabra del archivo
             strcpy(thWordF,"");
-            fscanf(fp,"%s",thWordF);
+            fscanf(fp,"%s",thWordF);// almacenar en thWordF la palabra del archivo
 
-            if(strlen(thWordF) == strlen(thStruct->strFind)){// Caso base: Comparar cadenas con el mismo tamaño
-                if( strcmp(thWordF,thStruct->strFind) == 0 ){// Si tienen el mismo contenido
-                    thStruct->nTimesFound = thStruct->nTimesFound + 1;//Registrar que se ha encontrado una vez
-                }
-            }else{
-                if( strncmp(thWordF, thStruct->strFind, strlen(thStruct->strFind)) == 0 ){// si coinciden los primeros caracteres (n primeros caracteres de la palabra estandar a buscar), por ejemplo todos y todos!
-                    if(isSignoDeTerminacion(thWordF[strlen(thStruct->strFind)])){//si esta un signo de terminacion en la palabra del archivo todos! y aparte ya comprobado que los primeros caracteres son iguales
-                        thStruct->nTimesFound = thStruct->nTimesFound + 1;
-                    }
-                }else if(thWordF[0] == '('){//para el caso de (todos y todos
-                    char *p1 = thWordF;
-                    p1++;
-                    char *p2 = thStruct->strFind;
-                    int coincidences = 0;
-                    while(*p1 != '\0'){
-                        if(*p1 == *p2){
-                            coincidences++;
-                            p1++;
-                            p2++;
-                        }else{
-                            break;
-                        }
-                    }
+            tok = NULL;
+            tok = strtok(thWordF," (),.:;-_!@?|#$\"\'\t\n\v");//strtok se encarga de extraer caracteres alfanumericos (que se pueda encontrar en thWordF) hasta que se encuentre un espacio o un ( o un ) o un . o un , ... y dichos caracteres se almacenan en tok. En teoria, tok tendria una palabra
 
-                    if(coincidences == strlen(thStruct->strFind)){
-                        thStruct->nTimesFound = thStruct->nTimesFound + 1;
-                    }
-                }else if(thWordF[0] == '(' && thWordF[strlen(thWordF) - 1 ] == ')'){//para el caso de (todos) y todos
-                    char *p1 = thWordF;
-                    p1++;
-                    char *p2 = thStruct->strFind;
-                    int coincidences = 0;
-                    while(*p1 != '\0'){
-                        if(*p1 == *p2){
-                            coincidences++;
-                            p1++;
-                            p2++;
-                            if(coincidences == strlen(thStruct->strFind)){
-                                thStruct->nTimesFound = thStruct->nTimesFound + 1;
-                                break;
-                            }
-                        }else{
-                            break;
-                        }
-                    }
+            while(tok != NULL){//mientras tok (palabra de thWordF, que se extrae de el archivo) no sea nula 
+                if ( strcmp(tok,thStruct->testWord) == 0 ){
+                    thStruct->repetitionsNumber = thStruct->repetitionsNumber + 1;
                 }
-                
+        
+                tok = strtok(NULL," (),.:;-_!@?|#$\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
             }
+            
         }
         
         // Fin de algoritmo
-        //printf("FIN HILO\n");
+        thStruct->pThId = pthread_self();
+        printf("FIN  DEL HILO %ld\n", thStruct->pThId);
         return (void*) thStruct;
     }else{
-        printf("El archivo %s no se puede localizar en el directorio especificado!!\n",thStruct->fn);
+        printf("El archivo %s no se puede localizar en el directorio especificado!!\n",thStruct->testFile);
         exit(1);
     }
 }
@@ -103,12 +69,12 @@ int main(int argc, char const *argv[]){
     Struct *structs = (Struct*)malloc(sizeof(Struct)*nThreads);
     Struct *thDataRet= (Struct*)malloc(sizeof(Struct)*nThreads);
 
-    // Asignacion de datos a estructuras
+    // Inicializacion de informacion a estructuras a enviar a los hilos
     for (int i = 0; i < nThreads; i++){
-        strcpy(structs[i].fn,fileName);
+        strcpy(structs[i].testFile,fileName);
         //printf("%s\n",argv[i + 1]);
-        strcpy(structs[i].strFind,argv[i + 1]);
-        structs[i].nTimesFound = 0;
+        strcpy(structs[i].testWord,argv[i + 1]);
+        structs[i].repetitionsNumber= 0;
     }
 
     //Creación de hilos y ejecución
@@ -130,9 +96,9 @@ int main(int argc, char const *argv[]){
     }
 
     // Resultados del numero de veces que aparece cada palabra
-    printf("\nDatos de retorno de los hilos dado el archivo de prueba %s\n\n", fileName);
+    printf("\nDatos de retorno de los hilos\n\n");
     for (int i = 0; i < nThreads; i++){
-        printf("%d veces aparece la palabra %s\n",thDataRet[i].nTimesFound,thDataRet[i].strFind);
+        printf("Hilo %ld determinó que la palabra \"%s\" se repite %d veces en el archivo llamado %s\n",thDataRet[i].pThId,thDataRet[i].testWord,thDataRet[i].repetitionsNumber,thDataRet[i].testFile);
     }
     
 
@@ -142,10 +108,6 @@ int main(int argc, char const *argv[]){
     free(thDataRet);
     printf("\nFin del proceso padre!\n");
     return 0;
-}
-
-int isSignoDeTerminacion(char car){
-    return car == ',' || car == ';' || car == '!' || car == '.' || car == '?' || car == ':' || car == ')' ||  car == '\n';
 }
 
 //Compilacion -> gcc MT-Ejercicio6.c -lpthread
