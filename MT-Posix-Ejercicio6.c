@@ -9,11 +9,11 @@
 
 char const *fileName = "TestFile.txt";
 
-typedef struct{// la estructura contiene
+typedef struct{// la estructura (que se envia al hilo) contiene
     char testFile[20];// nombre del archivo donde se va a buscar la palabra
     char testWord[100];// palabra a buscar
     int repetitionsNumber;// veces que fue encontrada la palabra
-    long pThId;
+    long pThId;// id del hilo
 }Struct;
 
 void *routine(void* aStruct){//Flujo de instrucciones de un hilo. Funcion se convierte en un hilo
