@@ -30,13 +30,13 @@ void *routine(void* aStruct){//Flujo de instrucciones de un hilo. Funcion se con
             fscanf(fp,"%s",thWordF);// almacenar en thWordF la palabra del archivo
 
             tok = NULL;
-            tok = strtok(thWordF," (),.:;-_!@?|#$\"\'\t\n\v");//strtok se encarga de extraer caracteres alfanumericos (que se pueda encontrar en thWordF) hasta que se encuentre un espacio o un ( o un ) o un . o un , ... y dichos caracteres se almacenan en tok. En teoria, tok tendria una palabra
+            tok = strtok(thWordF," (),.:;-_!@?|#$\0\"\'\t\n\v");//strtok se encarga de extraer caracteres alfanumericos (que se pueda encontrar en thWordF) hasta que se encuentre un espacio o un ( o un ) o un . o un , ... y dichos caracteres se almacenan en tok. En teoria, tok tendria una palabra
 
             while(tok != NULL){//mientras tok (palabra de thWordF, que se extrae de el archivo) no sea nula 
                 if ( strcmp(tok,thStruct->testWord) == 0 ){
                     thStruct->repetitionsNumber = thStruct->repetitionsNumber + 1;
                 }
-                tok = strtok(NULL," (),.:;-_!@?|#$\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
+                tok = strtok(NULL," (),.:;-_!@?|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
             }
             
         }
