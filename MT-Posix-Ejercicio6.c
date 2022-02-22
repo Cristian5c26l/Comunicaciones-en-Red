@@ -22,7 +22,6 @@ void *routine(void* aStruct){//Flujo de instrucciones de un hilo. Funcion se con
     if(fp != NULL){
 
         // Algoritmo para encontrar el numero de veces que aparece la palabra thStruct->strFind en el archivo .txt especificado
-
         char thWordF[100];
         char *tok; //token donde se guarda una palabra o cadena de caracteres con significado coheerente. En este caso, en tok se guardaran caracteres alfanumericos (para formar palabras o cantidades numericas) hasta que encuentre un espacio, coma, punto o algun signo de puntuacion extra
         while(!feof(fp)){ // Recorrer todo el archivo
@@ -37,7 +36,6 @@ void *routine(void* aStruct){//Flujo de instrucciones de un hilo. Funcion se con
                 if ( strcmp(tok,thStruct->testWord) == 0 ){
                     thStruct->repetitionsNumber = thStruct->repetitionsNumber + 1;
                 }
-        
                 tok = strtok(NULL," (),.:;-_!@?|#$\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
             }
             
@@ -45,7 +43,7 @@ void *routine(void* aStruct){//Flujo de instrucciones de un hilo. Funcion se con
         
         // Fin de algoritmo
         thStruct->pThId = pthread_self();
-        printf("FIN  DEL HILO %ld\n", thStruct->pThId);
+        printf("FIN DEL HILO %ld\n", thStruct->pThId);
         return (void*) thStruct;
     }else{
         printf("El archivo %s no se puede localizar en el directorio especificado!!\n",thStruct->testFile);
@@ -69,16 +67,15 @@ int main(int argc, char const *argv[]){
     Struct *structs = (Struct*)malloc(sizeof(Struct)*nThreads);
     Struct *thDataRet= (Struct*)malloc(sizeof(Struct)*nThreads);
 
-    // Inicializacion de informacion a estructuras a enviar a los hilos
+    // Inicializacion de informacion de estructuras a enviar a los hilos
     for (int i = 0; i < nThreads; i++){
         strcpy(structs[i].testFile,fileName);
         //printf("%s\n",argv[i + 1]);
-        strcpy(structs[i].testWord,argv[i + 1]);
+        strcpy(structs[i].testWord,argv[i + 1]);//paso de lo que esta en argv[i + 1] (que es una palabra) a structs[i].testWord
         structs[i].repetitionsNumber= 0;
     }
 
-    //Creación de hilos y ejecución
-
+    // Creación de hilos y ejecución
     for (int i = 0; i < nThreads; i++){
         
         if( pthread_create( &thArray[i], NULL, routine, (void*) &structs[i]) < 0 ){//paso de estructura al hilo
@@ -86,7 +83,6 @@ int main(int argc, char const *argv[]){
             exit( 1 );
         }
     }
-
 
     // Esperar la terminación de los hilos y recuperar lo que retornan a través de aux
     Struct *aux;
@@ -101,14 +97,14 @@ int main(int argc, char const *argv[]){
         printf("Hilo %ld determinó que la palabra \"%s\" se repite %d veces en el archivo llamado %s\n",thDataRet[i].pThId,thDataRet[i].testWord,thDataRet[i].repetitionsNumber,thDataRet[i].testFile);
     }
     
-
     //Liberamos espacio de memoria dinamica
     free(thArray);
     free(structs);
     free(thDataRet);
     printf("\nFin del proceso padre!\n");
+    
     return 0;
 }
 
-//Compilacion -> gcc MT-Ejercicio6.c -lpthread
+//Compilacion -> gcc MT-Posix-Ejercicio6.c -lpthread
 //Ejecucion -> ./a.out palabra1 palabra2...
