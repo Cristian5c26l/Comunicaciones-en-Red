@@ -127,6 +127,7 @@ void checkMallocError(void* pointer ){
         printf("Error en Malloc. No se pudo generar memoria dinamica.\n");
         exit(1);
     }
+    return;
 }
 
 //Compilacion -> gcc MT-Posix-Ejercicio6.c -lpthread
