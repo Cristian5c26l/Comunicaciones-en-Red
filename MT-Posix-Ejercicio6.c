@@ -28,7 +28,6 @@ void *wordSearch(void* word){//Flujo de instrucciones de un hilo. Funcion se con
     checkMallocError((void*) returnData );
     // Inicializacion de informacion de estructura a enviar al padre
     strcpy(returnData->testFile,fileName);
-    //printf("%s\n",argv[i + 1]);
     strcpy(returnData->testWord,getLowerString(w));
     returnData->repetitionsNumber= 0;
     FILE* fp = fopen(returnData->testFile,"r");// leer el nombre del archivo que se quiere analizar con este hilo
