@@ -16,14 +16,14 @@ int main(int argc, char const *argv[]){
         while(!feof(fp)){
             fscanf(fp,"%s",s);
             //printf("Word: %s\n",s);
-            tok = strtok(s," (),.:;-_!@?¿¡|#$\0\"\'\t\n\v");
+            tok = strtok(s," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");
             while(tok != NULL){//mientras tok (cadena extraida de la palabra en minusculas) no sea nula 
 
                 if((tok[0]>= 'A' && tok[0]<= 'Z') || (tok[0]>= 'a' && tok[0]<= 'z')){
                     printf("Word: %s\n",tok);
                     n++;
                 }
-                tok = strtok(NULL," (),.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
+                tok = strtok(NULL," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
             }
         }
 

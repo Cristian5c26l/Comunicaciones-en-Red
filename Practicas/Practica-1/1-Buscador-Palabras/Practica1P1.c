@@ -14,18 +14,25 @@ typedef struct wordData{// Bloque usado para almacenar cuantas veces apareció u
 
 typedef struct responseData{// Bloque de información de retorno al padre
     long pThId;// id del hilo
+    int pseudoId;
     char testFile[20];// archivo que el hilo analizo
     WordData *wordReport;
 }ResponseData;
 
-char* getLowerString(char*);
+typedef struct ThreadArgumentStruct{// Estructura que se manda como parametro al hilo
+    int pseudoId;
+    char fileName[20];
+}StructArgument;
+
+char* getLowerString(char*);// Tiene como parametro una cadena
 int sizeWordArray(void);
 long getWordsNumberTotal(char const *argv[],int);
 
-void *searchWord(void* literalFileName){//Flujo de instrucciones de un hilo. Funcion se convierte en un hilo
+void *searchWord(void* structPar){//Flujo de instrucciones de un hilo. Funcion se convierte en un hilo
+    StructArgument* sA = (StructArgument*) structPar;
     //Concatenar nombre del archivo recibido con la extension .txt
     char tf[20];
-    strcpy(tf, (char*)literalFileName);
+    strcpy(tf, sA->fileName);
     char ext[] = ".txt";
     strcat(tf,ext);
     FILE* fp = fopen(tf,"r");// leer el nombre del archivo que se quiere analizar con este hilo
@@ -33,6 +40,7 @@ void *searchWord(void* literalFileName){//Flujo de instrucciones de un hilo. Fun
         //Crear bloque de información de retorno al padre
         ResponseData* respData = (ResponseData*)malloc(sizeof(ResponseData));
         respData->pThId = pthread_self();
+        respData->pseudoId = sA->pseudoId;
         strcpy(respData->testFile,tf);
         
         int sArrWord = sizeWordArray();
@@ -54,7 +62,7 @@ void *searchWord(void* literalFileName){//Flujo de instrucciones de un hilo. Fun
             fscanf(fp,"%s",thWordF);// almacenar en thWordF la palabra del archivo
             thLowerWordF = getLowerString(thWordF);// convertirla a minusculas
             tok = NULL;
-            tok = strtok(thLowerWordF," (),.:;-_!@?¿¡|#$\0\"\'\t\n\v");//strtok se encarga de extraer caracteres alfanumericos (que se pueda encontrar en la cadena convertida en minusculas) hasta que se encuentre un espacio o un ( o un ) o un . o un , ... y dichos caracteres se concatenan y se almacenan en tok. En teoria, tok tendria una palabra
+            tok = strtok(thLowerWordF," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");//strtok se encarga de extraer caracteres alfanumericos (que se pueda encontrar en la cadena convertida en minusculas) hasta que se encuentre un espacio o un ( o un ) o un . o un , ... y dichos caracteres se concatenan y se almacenan en tok. En teoria, tok tendria una palabra
 
             while(tok != NULL){//mientras tok (cadena extraida de la palabra en minusculas) no sea nula 
                 i = 0;
@@ -65,7 +73,7 @@ void *searchWord(void* literalFileName){//Flujo de instrucciones de un hilo. Fun
                     }
                     i++;
                 }
-                tok = strtok(NULL," (),.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
+                tok = strtok(NULL," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
             }
         }
         //printf("FIN DEL HILO %ld\n", pthread_self());
@@ -99,12 +107,19 @@ int main(int argc, char const *argv[]){
     // Conteo del total de palabras que se analizan
     long nWords = getWordsNumberTotal(argv,argc);
 
+    // Preparar argumentos a enviar a cada hilo
+    StructArgument *argumentArray = (StructArgument*)malloc(sizeof(ResponseData)*nThreads);
+    for (int i = 0; i < (nThreads); i++){
+        argumentArray[i].pseudoId = i;
+        strcpy(argumentArray[i].fileName,argv[i+1]);
+    }
+
     pthread_t* thArray = ( pthread_t* )malloc( (nThreads)*sizeof(pthread_t) );// tam = 10, 10 archivos a analizar
     ResponseData *responseArray = (ResponseData *)malloc(sizeof(ResponseData)*nThreads);// Arreglo para almacenar temporalmente las estructuras tipo ResponseData que retornan los hilos
-    
+
     // Creación y ejecución de los hilos
     for (int i = 0; i < (nThreads); i++){
-        if( pthread_create( &thArray[i], NULL, searchWord, (void*) argv[i+1]) < 0 ){//paso del nombre del archivo a analizar al hilo
+        if( pthread_create( &thArray[i], NULL, searchWord, (void*) &argumentArray[i]) < 0 ){//paso del nombre del archivo a analizar al hilo
             printf("El sistema operativo no pudo crear un hilo POSIX de usuario\n");
             exit( 1 );
         }
@@ -119,10 +134,10 @@ int main(int argc, char const *argv[]){
 
     //Imprimir resultados de respuesta de todos los hilos
     for (int i = 0; i < nThreads; i++){
-        printf("El hilo %ld devolvió la siguiente información tras analizar el archivo \"%s\":\n\n",responseArray[i].pThId,responseArray[i].testFile);
+        printf("El hilo %d devolvió la siguiente información tras analizar el archivo \"%s\":\n\n",responseArray[i].pseudoId,responseArray[i].testFile);
         //Informacion de las palabras (numero de veces que apareció dicha en un archivo en particular)
         for (int j = 0; j < (sArrWord); j++){
-            printf("[HILO %ld] La palabra \"%s\" se encontró %d veces\n",responseArray[i].pThId,responseArray[i].wordReport[j].testWord,responseArray[i].wordReport[j].repetitionsNumber);
+            printf("[HILO %d] La palabra \"%s\" se encontró %d veces\n",responseArray[i].pseudoId,responseArray[i].wordReport[j].testWord,responseArray[i].wordReport[j].repetitionsNumber);
             //wDataReport[j].testWord = responseArray[i]->wordReport[j].testWord;
             // Actualización de suma del numero de veces que apareció la palabra en el archivo particular
             wDataReport[j].repetitionsNumber = wDataReport[j].repetitionsNumber + responseArray[i].wordReport[j].repetitionsNumber;
