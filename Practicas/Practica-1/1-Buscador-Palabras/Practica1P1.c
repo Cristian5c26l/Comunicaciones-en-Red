@@ -155,7 +155,7 @@ int main(int argc, char const *argv[]){
         w = wDataReport[i].testWord;
         nrw = wDataReport[i].repetitionsNumber;
         percent = ((float) nrw * (float) 100) / ( (float) nWords );// Regla de 3
-        printf("Palabra: %s. Porcentaje de aparición: %f%%\n",w,percent);
+        printf("[Palabra: %s (Apareció %d veces en total)]. Porcentaje de aparición: %f%%\n",w,nrw,percent);
     }
     
     // Liberar espacio en memoria dinamica
