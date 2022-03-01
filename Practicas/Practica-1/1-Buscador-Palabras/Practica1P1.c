@@ -207,14 +207,14 @@ long getWordsNumberTotal(char const *argv[],int argc){
             while (!feof(fp)){//lectura de archivo actual (mientras no sea el final)
                 fscanf(fp,"%s",anyWord);//extraccion de palabra (recorro archivo)
                 //nWords++;//dado que se extrae una palabra, hay una palabra mas
-                tok = strtok(anyWord," (),.:;-_!@?¿¡|#$\0\"\'\t\n\v");
+                tok = strtok(anyWord," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");
                 while(tok != NULL){//mientras tok (cadena extraida de la palabra en minusculas) no sea nula 
 
                     if((tok[0]>= 'A' && tok[0]<= 'Z') || (tok[0]>= 'a' && tok[0]<= 'z')){
                         //printf("Word: %s\n",tok);
                         nWords++;
                     }
-                    tok = strtok(NULL," (),.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
+                    tok = strtok(NULL," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
                 }
             }
             fclose(fp);
