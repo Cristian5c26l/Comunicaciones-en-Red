@@ -76,7 +76,7 @@ void *searchWord(void* structPar){//Flujo de instrucciones de un hilo. Funcion s
                 tok = strtok(NULL," ()—,.:;-_!@?¿¡|#$\0\"\'\t\n\v");//obten la siguiente palabra que pueda formarse con strtok utilizando la misma thWordF
             }
         }
-        //printf("FIN DEL HILO %ld\n", pthread_self());
+        printf("FIN DEL HILO %d\n", respData->pseudoId);
         return (void*) respData;
     }else{
         printf("El archivo %s no se puede localizar en el directorio actual!!\n",tf);
@@ -131,7 +131,7 @@ int main(int argc, char const *argv[]){
         responseArray[i] = *newResponseData;
         free(newResponseData);
     }
-
+    printf("\n");
     //Imprimir resultados de respuesta de todos los hilos
     for (int i = 0; i < nThreads; i++){
         printf("El hilo %d devolvió la siguiente información tras analizar el archivo \"%s\":\n\n",responseArray[i].pseudoId,responseArray[i].testFile);
