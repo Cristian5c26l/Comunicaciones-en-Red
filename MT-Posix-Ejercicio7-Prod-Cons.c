@@ -2,41 +2,33 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <pthread.h>
-#include <string.h>
 #include <semaphore.h>
 
-long *s = NULL; //recurso compartido
-long limit = 49;
+int seccionCritica; //recurso compartido
+int limit = 49;
 
 sem_t semProd;
 sem_t semCons;
 
-void putItemIntoBuffer(long*);
-long removeItemFromBuffer(void);
-long *produceNewItem(long*);
-void consumeItem(long);
 
 void *consumerThread(void* par){
-    long valueS = -1;
-    while (valueS < limit){
+    int *consThId = (int*) par;
+    for (int i = 0; i < (limit + 1); i++){
         sem_wait(&semCons);
-        valueS = removeItemFromBuffer();
+        printf("[Consumidor:id:%d][Item: %d]\n",*consThId,seccionCritica);
         sem_post(&semProd);
-        consumeItem(valueS);
     }
     
 }
 
 void *producerThread(void* par){
-    long valueS = -1;
-    long *item;
-    while (valueS < limit){
-        item = produceNewItem(&valueS);
+    int *prodThId = (int*) par;
+    for (int i = 0; i < (limit + 1); i++){
         sem_wait(&semProd);
-        putItemIntoBuffer(item);
+        seccionCritica = i;
+        printf("[Productor:id:%d][Item: %d]\n",*prodThId,seccionCritica);
         sem_post(&semCons);
     }
-    
 }
 
 int main(int argc, char const *argv[]){
@@ -51,44 +43,25 @@ int main(int argc, char const *argv[]){
         exit(1);
     }
 
-    pthread_t th1,th2;
+    pthread_t prodTh,consTh;
+    int consThId, prodThId;
+    consThId = 0;
+    prodThId = 0;
     
-    if( pthread_create( &th1, NULL, producerThread, NULL) < 0 ){
+    if( pthread_create( &prodTh, NULL, producerThread, (void*) &prodThId ) < 0 ){
         printf("El sistema operativo no pudo crear un hilo POSIX de usuario\n");
         exit( 1 );
     }
 
-    if( pthread_create( &th2, NULL, consumerThread, NULL) < 0 ){
+    if( pthread_create( &consTh, NULL, consumerThread, (void*) &consThId) < 0 ){
         printf("El sistema operativo no pudo crear un hilo POSIX de usuario\n");
         exit( 1 );
     }    
 
-    pthread_join( th1, NULL);
-    pthread_join( th2, NULL);
+    pthread_join( prodTh, NULL);
+    pthread_join( consTh, NULL);
     sem_destroy(&semProd);
     sem_destroy(&semCons);
 
     return 0;
-}
-
-long* produceNewItem(long *value){
-    *value = *value + 1 ;
-    long *it= malloc(sizeof(long));
-    *it = *value;
-    return it;
-}
-
-void putItemIntoBuffer(long *it){
-    s = it;
-    return;
-}
-
-long removeItemFromBuffer(){
-    long auxS = *s;
-    free(s);
-    return auxS;
-}
-
-void consumeItem(long s){
-    printf("Item: %ld\n",s);
 }
